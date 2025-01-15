@@ -6,18 +6,12 @@ from linebot.v3 import (
 from linebot.v3.exceptions import (
     InvalidSignatureError
 )
-from linebot.v3.messaging import (
-    Configuration,
-    ApiClient,
-    MessagingApi,
-    ReplyMessageRequest,
-    TextMessage
-)
 from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent
 )
 
+import linebot.v3.messaging
 import os
 
 app = Flask(__name__)
@@ -149,7 +143,7 @@ def handle_message(event):
     try:
         groupID = event.source.group_id
     except: # 此機器人設計給群組回報，單兵不可直接一對一回報給機器人
-        message = TextSendMessage(text='我只接收群組內訊息，請先把我邀請到群組!')
+        message = TextMessage(text='我只接收群組內訊息，請先把我邀請到群組!')
         configuration.reply_message(event.reply_token, message)
     else:
         userID = event.source.user_id
@@ -183,8 +177,10 @@ def handle_message(event):
             LineMessage = msg_clear(groupID)
             
         if LineMessage :
-            message = TextSendMessage(text=LineMessage)
+            message = TextMessage(text=LineMessage)
             configuration.reply_message(event.reply_token, message)
 
 if __name__ == "__main__":
+    global reportData
+    reportData = {}
     app.run(host="0.0.0.0", port=10000)
