@@ -8,8 +8,7 @@ from linebot.v3.exceptions import (
 )
 from linebot.v3.webhooks import (
     MessageEvent,
-    TextMessageContent,
-    SourceGroup
+    TextMessageContent
 )
 
 from linebot.v3.messaging import (
