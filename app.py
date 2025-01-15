@@ -11,7 +11,13 @@ from linebot.v3.webhooks import (
     TextMessageContent
 )
 
-import linebot.v3.messaging
+from linebot.v3.messaging import (
+    Configuration,
+    ApiClient,
+    MessagingApi,
+    ReplyMessageRequest,
+    TextMessage
+)
 import os
 
 app = Flask(__name__)
