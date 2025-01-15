@@ -8,7 +8,8 @@ from linebot.v3.exceptions import (
 )
 from linebot.v3.webhooks import (
     MessageEvent,
-    TextMessageContent
+    TextMessageContent,
+    SourceGroup
 )
 
 from linebot.v3.messaging import (
@@ -16,7 +17,8 @@ from linebot.v3.messaging import (
     ApiClient,
     MessagingApi,
     ReplyMessageRequest,
-    TextMessage
+    TextMessage,
+    ApiClient
 )
 import os
 
@@ -147,19 +149,25 @@ def msg_clear(groupID):
 def handle_message(event):
     # 各群組的資訊互相獨立
     try:
-        groupID = event.source.group_id
+        if isinstance(event.source, SourceGroup):
+            groupID = event.source.group_id
+        else:
+            raise AttributeError("Event source is not a group.")
     except: # 此機器人設計給群組回報，單兵不可直接一對一回報給機器人
         message = TextMessage(text='我只接收群組內訊息，請先把我邀請到群組!')
-        configuration.reply_message(event.reply_token, message)
+        messaging_api = MessagingApi(ApiClient(configuration))
+        messaging_api.reply_message(event.reply_token, [message])
+        return
     else:
         userID = event.source.user_id
 
-        g_profile = configuration.get_group_summary(groupID)
+        messaging_api = MessagingApi(ApiClient(configuration))
+        g_profile = messaging_api.get_group_summary(groupID)
         groupName = g_profile.group_name
 
         u_profile = configuration.get_group_member_profile(groupID,userID)
         userName = u_profile.display_name
-        userName = str(userName)
+        '''userName = str(userName)'''
 
         if not reportData.get(groupID): # 如果此群組為新加入，會創立一個新的儲存區
             reportData[groupID]={}
@@ -184,8 +192,8 @@ def handle_message(event):
             
         if LineMessage :
             message = TextMessage(text=LineMessage)
-            configuration.reply_message(event.reply_token, message)
-
+            messaging_api.reply_message(event.reply_token, [message])
+            
 if __name__ == "__main__":
     global reportData
     reportData = {}
