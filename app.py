@@ -22,11 +22,8 @@ import os
 
 app = Flask(__name__)
 
-'YOUR_CHANNEL_ACCESS_TOKEN' = os.getenv("CHANNEL_ACCESS_TOKEN")
-'YOUR_CHANNEL_SECRET' = os.getenv("CHANNEL_SECRET")
-
-configuration = Configuration(access_token='YOUR_CHANNEL_ACCESS_TOKEN')
-handler = WebhookHandler('YOUR_CHANNEL_SECRET')
+configuration = Configuration(access_token=os.getenv("CHANNEL_ACCESS_TOKEN"))
+handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
 
 
 @app.route("/callback", methods=['POST'])
