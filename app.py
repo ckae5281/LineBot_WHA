@@ -148,51 +148,50 @@ def msg_clear(groupID):
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     # 各群組的資訊互相獨立
-    try:
-        if isinstance(event.source, SourceGroup):
-            groupID = event.source.group_id
-        else:
-            raise AttributeError("Event source is not a group.")
-    except: # 此機器人設計給群組回報，單兵不可直接一對一回報給機器人
-        message = TextMessage(text='我只接收群組內訊息，請先把我邀請到群組!')
+    # 確認事件來源類型
+    source_type = event.source.type
+    if source_type == 'group':
+        groupID = event.source.group_id
+    else:
         messaging_api = MessagingApi(ApiClient(configuration))
+        message = TextMessage(text='我只接收群組內訊息，請先把我邀請到群組!')
         messaging_api.reply_message(event.reply_token, [message])
         return
-    else:
-        userID = event.source.user_id
+    
+    userID = event.source.user_id
+    messaging_api = MessagingApi(ApiClient(configuration))
+    
+    g_profile = messaging_api.get_group_summary(groupID)
+    groupName = g_profile.group_name
 
-        messaging_api = MessagingApi(ApiClient(configuration))
-        g_profile = messaging_api.get_group_summary(groupID)
-        groupName = g_profile.group_name
+    u_profile = configuration.get_group_member_profile(groupID,userID)
+    userName = u_profile.display_name
+    '''userName = str(userName)'''
 
-        u_profile = configuration.get_group_member_profile(groupID,userID)
-        userName = u_profile.display_name
-        '''userName = str(userName)'''
+    if not reportData.get(groupID): # 如果此群組為新加入，會創立一個新的儲存區
+        reportData[groupID]={}
+    LineMessage = ''
+    receivedmsg = event.message.text
 
-        if not reportData.get(groupID): # 如果此群組為新加入，會創立一個新的儲存區
-            reportData[groupID]={}
-        LineMessage = ''
-        receivedmsg = event.message.text
-
-        if '姓名' in receivedmsg and '學號' in receivedmsg and '手機' in receivedmsg:
-            LineMessage = msg_report(receivedmsg,groupID)
-        elif '自訂回報' in receivedmsg[:4]:
-            LineMessage = msg_manual_report(receivedmsg,groupID,userName)
-        elif '使用說明' in receivedmsg and len(receivedmsg)==4:
-            LineMessage = msg_readme()        
-        elif '回報統計' in receivedmsg and len(receivedmsg)==4:
-            LineMessage = msg_cnt(groupID)
-        elif '格式' in receivedmsg and len(receivedmsg)==2:
-            LineMessage = msg_format()
-        elif '輸出回報' in receivedmsg and len(receivedmsg)==4:
-            LineMessage = msg_output(groupID)
-        # for Error Debug, Empty all data -Garrett, 2021.01.27        
-        elif '清空' in receivedmsg and len(receivedmsg)==2:
-            LineMessage = msg_clear(groupID)
-            
-        if LineMessage :
-            message = TextMessage(text=LineMessage)
-            messaging_api.reply_message(event.reply_token, [message])
+    if '姓名' in receivedmsg and '學號' in receivedmsg and '手機' in receivedmsg:
+        LineMessage = msg_report(receivedmsg,groupID)
+    elif '自訂回報' in receivedmsg[:4]:
+        LineMessage = msg_manual_report(receivedmsg,groupID,userName)
+    elif '使用說明' in receivedmsg and len(receivedmsg)==4:
+        LineMessage = msg_readme()        
+    elif '回報統計' in receivedmsg and len(receivedmsg)==4:
+        LineMessage = msg_cnt(groupID)
+    elif '格式' in receivedmsg and len(receivedmsg)==2:
+        LineMessage = msg_format()
+    elif '輸出回報' in receivedmsg and len(receivedmsg)==4:
+        LineMessage = msg_output(groupID)
+    # for Error Debug, Empty all data -Garrett, 2021.01.27        
+    elif '清空' in receivedmsg and len(receivedmsg)==2:
+        LineMessage = msg_clear(groupID)
+        
+    if LineMessage :
+        message = TextMessage(text=LineMessage)
+        messaging_api.reply_message(event.reply_token, [message])
             
 if __name__ == "__main__":
     global reportData
