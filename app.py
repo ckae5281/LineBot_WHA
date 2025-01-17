@@ -19,6 +19,9 @@ from linebot.v3.messaging import (
     TextMessage,
     ApiClient
 )
+
+from linebot.v3.models import *
+
 import os
 
 app = Flask(__name__)
